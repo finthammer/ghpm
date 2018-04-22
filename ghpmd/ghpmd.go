@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/themue/ghpm/github"
 )
@@ -13,5 +14,11 @@ func main() {
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
-	fmt.Printf("events %v\n", events)
+	fmt.Printf("1st events %v\n", events)
+	time.Sleep(time.Second)
+	events, err = e.Get()
+	if err != nil {
+		fmt.Printf("error %v\n", err)
+	}
+	fmt.Printf("2nd events %v\n", events)
 }
