@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/themue/ghpm/analyze"
 	"github.com/themue/ghpm/github"
 )
 
@@ -14,11 +15,19 @@ func main() {
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
-	fmt.Printf("1st events %v\n", events)
+	a, err := analyze.Events(events, analyze.TypeCounter)
+	if err != nil {
+		fmt.Printf("error %v\n", err)
+	}
+	fmt.Printf("1st events %v\n", a)
 	time.Sleep(time.Second)
 	events, err = e.Get()
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
-	fmt.Printf("2nd events %v\n", events)
+	a, err = analyze.Events(events, analyze.TypeCounter)
+	if err != nil {
+		fmt.Printf("error %v\n", err)
+	}
+	fmt.Printf("2nd events %v\n", a)
 }

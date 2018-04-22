@@ -90,7 +90,12 @@ func (e *RepoEventor) Get() (Events, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// Everything fine.
+	case http.StatusNotModified:
+		return Events{}, nil
+	default:
 		return nil, fmt.Errorf("HTTP status code %d", resp.StatusCode)
 	}
 	buf, err := ioutil.ReadAll(resp.Body)
