@@ -12,6 +12,12 @@ type Aggregate map[string]interface{}
 // inside the passed aggregate too.
 type EventsAnalyzer func(es github.Events, a Aggregate) (Aggregate, error)
 
+// Counter simply counts the number of events.
+func Counter(es github.Events, a Aggregate) (Aggregate, error) {
+	a["total"] = len(es)
+	return a, nil
+}
+
 // TypeCounter counts the different event types in the passed events.
 func TypeCounter(es github.Events, a Aggregate) (Aggregate, error) {
 	for _, e := range es {

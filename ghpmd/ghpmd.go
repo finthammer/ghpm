@@ -15,7 +15,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
-	a, err := analyze.Events(events, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
+	a, err := analyze.Events(events,
+		analyze.Counter, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
@@ -25,7 +26,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
-	a, err = analyze.Events(events, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
+	a, err = analyze.Events(events,
+		analyze.Counter, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
 	if err != nil {
 		fmt.Printf("error %v\n", err)
 	}
