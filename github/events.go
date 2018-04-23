@@ -60,6 +60,7 @@ func NewRepoEventor(o, r string, os ...Option) *RepoEventor {
 		repo:    r,
 		options: &Options{},
 	}
+	// Apply options.
 	for _, o := range os {
 		o(e.options)
 	}
@@ -94,6 +95,7 @@ func (e *RepoEventor) Get() (Events, error) {
 	case http.StatusOK:
 		// Everything fine.
 	case http.StatusNotModified:
+		// Nothing to see here.
 		return Events{}, nil
 	default:
 		return nil, fmt.Errorf("HTTP status code %d", resp.StatusCode)
