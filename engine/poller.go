@@ -1,6 +1,7 @@
-package main
+package engine
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -21,44 +22,43 @@ type Job struct {
 	Owner           string
 	Repo            string
 	GitHubOptions   []github.Option
-	Frequency       time.Duration
+	Interval        time.Duration
 	EventsAnalyzers []analyze.EventsAnalyzer
 }
+
+// Jobs contains a number of jobs.
+type Jobs []*Job
 
 // Poller periodically polls events of a repository
 // and analyzes it.
 type Poller struct {
+	ctx     context.Context
 	job     *Job
 	eventor *github.RepoEventor
 	resultc chan *Result
-	stopc   chan struct{}
 }
 
-// NewPoller creates a repository poller and starts it
+// SpawnPoller creates a repository poller and starts it
 // in the background.
-func NewPoller(job *Job, resultc chan *Result) *Poller {
+func SpawnPoller(ctx context.Context, job *Job, resultc chan *Result) {
 	p := &Poller{
+		ctx:     ctx,
 		job:     job,
 		eventor: github.NewRepoEventor(job.Owner, job.Repo, job.GitHubOptions...),
 		resultc: resultc,
-		stopc:   make(chan struct{}),
 	}
-	return p
-}
-
-// Stop terminates the backend of the poller.
-func (p *Poller) Stop() {
-	p.stopc <- struct{}{}
+	go p.backend()
 }
 
 // backend polls the repository and analyzes it periodically
 // in the background.
 func (p *Poller) backend() {
-	ticker := time.NewTicker(p.job.Frequency)
+	ticker := time.NewTicker(p.job.Interval)
 	defer ticker.Stop()
+	defer close(p.resultc)
 	for {
 		select {
-		case <-p.stopc:
+		case <-p.ctx.Done():
 			return
 		case <-ticker.C:
 			p.resultc <- p.analyze()
