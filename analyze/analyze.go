@@ -5,14 +5,14 @@ import (
 )
 
 // Events performs the analyzers on the passed events.
-func Events(es github.Events, eas ...EventsAnalyzer) (Aggregate, error) {
-	var a Aggregate = Aggregate{}
+func Events(es github.Events, eas ...EventsAnalyzer) (Accumulation, error) {
+	var acc = Accumulation{}
 	var err error
 	for _, analyze := range eas {
-		a, err = analyze(es, a)
+		acc, err = analyze(es, acc)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return a, nil
+	return acc, nil
 }

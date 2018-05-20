@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/themue/ghpm/analyze"
@@ -20,16 +21,37 @@ func ReadJobs() Jobs {
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 			},
+			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				if !accOld.AddAll(accNew) {
+					log.Printf("cannot accumulate correctly")
+					return analyze.Accumulation{}
+				}
+				return accOld
+			},
+		}, {
+			ID:            "status-themue",
+			Owner:         "status-im",
+			Repo:          "status-go",
+			GitHubOptions: []github.Option{},
+			Interval:      1 * time.Minute,
+			EventsAnalyzers: []analyze.EventsAnalyzer{
+				analyze.CreateActorFilter("themue"),
+			},
+			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				if !accOld.AddAll(accNew) {
+					log.Printf("cannot accumulate correctly")
+					return analyze.Accumulation{}
+				}
+				return accOld
+			},
 		},
 	}
 	return jobs
 }
 
-// StartPoller poller starts the individual poller for the passed jobs.
-func StartPoller(ctx context.Context, jobs Jobs) <-chan *Result {
-	resultc := make(chan *Result)
+// StartPollers starts the individual pollers for the passed jobs.
+func StartPollers(ctx context.Context, jobs Jobs, collector *Collector) {
 	for _, job := range jobs {
-		SpawnPoller(ctx, job, resultc)
+		SpawnPoller(ctx, job, collector)
 	}
-	return resultc
 }
