@@ -17,11 +17,12 @@ func ReadJobs() Jobs {
 			Owner:         "themue",
 			Repo:          "ghpm",
 			GitHubOptions: []github.Option{},
-			Interval:      1 * time.Minute,
+			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 			},
 			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				log.Printf("adding %v ...", accNew.Keys())
 				if !accOld.AddAll(accNew) {
 					log.Printf("cannot accumulate correctly")
 					return analyze.Accumulation{}
@@ -29,15 +30,35 @@ func ReadJobs() Jobs {
 				return accOld
 			},
 		}, {
-			ID:            "status-themue",
-			Owner:         "status-im",
-			Repo:          "status-go",
+			ID:            "tideland-goaudit",
+			Owner:         "tideland",
+			Repo:          "goaudit",
 			GitHubOptions: []github.Option{},
-			Interval:      1 * time.Minute,
+			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.CreateActorFilter("themue"),
+				analyze.TypeCounter,
 			},
 			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				log.Printf("adding %v ...", accNew.Keys())
+				if !accOld.AddAll(accNew) {
+					log.Printf("cannot accumulate correctly")
+					return analyze.Accumulation{}
+				}
+				return accOld
+			},
+		}, {
+			ID:            "tideland-gocells",
+			Owner:         "tideland",
+			Repo:          "gocells",
+			GitHubOptions: []github.Option{},
+			Interval:      10 * time.Second,
+			EventsAnalyzers: []analyze.EventsAnalyzer{
+				analyze.CreateActorFilter("themue"),
+				analyze.TypeCounter,
+			},
+			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				log.Printf("adding %v ...", accNew.Keys())
 				if !accOld.AddAll(accNew) {
 					log.Printf("cannot accumulate correctly")
 					return analyze.Accumulation{}
@@ -49,8 +70,8 @@ func ReadJobs() Jobs {
 	return jobs
 }
 
-// StartPollers starts the individual pollers for the passed jobs.
-func StartPollers(ctx context.Context, jobs Jobs, collector *Collector) {
+// SpawnPollers starts the individual pollers for the passed jobs.
+func SpawnPollers(ctx context.Context, jobs Jobs, collector *Collector) {
 	for _, job := range jobs {
 		SpawnPoller(ctx, job, collector)
 	}

@@ -1,35 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"time"
 
-	"github.com/themue/ghpm/analyze"
-	"github.com/themue/ghpm/github"
+	"github.com/themue/ghpm/engine"
 )
 
 func main() {
-	fmt.Println("GitHub Process Monitor")
-	e := github.NewRepoEventor("themue", "ghpm")
-	events, err := e.Get()
-	if err != nil {
-		fmt.Printf("error %v\n", err)
-	}
-	a, err := analyze.Events(events,
-		analyze.Counter, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
-	if err != nil {
-		fmt.Printf("error %v\n", err)
-	}
-	fmt.Printf("1st events %v\n", a)
-	time.Sleep(time.Second)
-	events, err = e.Get()
-	if err != nil {
-		fmt.Printf("error %v\n", err)
-	}
-	a, err = analyze.Events(events,
-		analyze.Counter, analyze.TypeCounter, analyze.CreateActorFilter("themue"))
-	if err != nil {
-		fmt.Printf("error %v\n", err)
-	}
-	fmt.Printf("2nd events %v\n", a)
+	log.Printf("GitHub Process Monitor started ...")
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+	collector := engine.NewCollector(ctx)
+	engine.SpawnPollers(ctx, engine.ReadJobs(), collector)
+	<-ctx.Done()
+	log.Printf("GitHub Process Monitor done!")
 }

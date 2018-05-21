@@ -3,6 +3,15 @@ package analyze
 // Accumulation is a generic key/value type.
 type Accumulation map[string]interface{}
 
+// Keys returns a list of the accumulation keys.
+func (acc Accumulation) Keys() []string {
+	var keys []string
+	for key := range acc {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 // Add adds the key value of addend to the same of the accumulator
 // if both are ints, uints, or float64.
 func (acc Accumulation) Add(key string, addend Accumulation) bool {
