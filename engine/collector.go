@@ -21,7 +21,7 @@ type Result struct {
 // and collects their results.
 type Collector struct {
 	ctx         context.Context
-	resultc     chan *Result
+	messagec    chan func()
 	accumulates map[string]analyze.Accumulation
 }
 
@@ -29,38 +29,39 @@ type Collector struct {
 func NewCollector(ctx context.Context) *Collector {
 	c := &Collector{
 		ctx:         ctx,
-		resultc:     make(chan *Result),
+		messagec:    make(chan func()),
 		accumulates: make(map[string]analyze.Accumulation),
 	}
 	go c.backend()
 	return c
 }
 
-// ResultC returns the channel where the users of
-// the collector can write their results in.
-func (c *Collector) ResultC() chan<- *Result {
-	return c.resultc
+// HandleResult handles a new result passed by any poller.
+func (c *Collector) HandleResult(result *Result) {
+	c.messagec <- func() {
+		if result.Err != nil {
+			log.Printf("error in poll job %q: %v", result.Job.ID, result.Err)
+			return
+		}
+		acc, ok := c.accumulates[result.Job.ID]
+		if !ok {
+			acc = analyze.Accumulation{}
+		}
+		log.Printf("accumulating job %q ...", result.Job.ID)
+		c.accumulates[result.Job.ID] = result.Job.Accumulate(acc, result.Accumulation)
+	}
 }
 
 // backend receives the individual results of the pollers
 // and aggregates them.
 func (c *Collector) backend() {
-	defer close(c.resultc)
+	defer close(c.messagec)
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
-		case r := <-c.resultc:
-			if r.Err != nil {
-				log.Printf("error in poll job %q: %v", r.Job.ID, r.Err)
-				continue
-			}
-			acc, ok := c.accumulates[r.Job.ID]
-			if !ok {
-				acc = analyze.Accumulation{}
-			}
-			log.Printf("accumulating job %q ...", r.Job.ID)
-			c.accumulates[r.Job.ID] = r.Job.Accumulate(acc, r.Accumulation)
+		case method := <-c.messagec:
+			method()
 		}
 	}
 }

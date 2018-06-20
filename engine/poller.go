@@ -54,7 +54,7 @@ func (p *Poller) backend() {
 		case <-p.ctx.Done():
 			return
 		case <-ticker.C:
-			p.collector.ResultC() <- p.analyze()
+			p.collector.HandleResult(p.analyze())
 		}
 	}
 }
