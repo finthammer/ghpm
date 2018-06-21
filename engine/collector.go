@@ -2,7 +2,9 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"log"
+	"sort"
 
 	"github.com/themue/ghpm/analyze"
 )
@@ -20,17 +22,17 @@ type Result struct {
 // Collector provides a result channel for the pollers
 // and collects their results.
 type Collector struct {
-	ctx         context.Context
-	messagec    chan func()
-	accumulates map[string]analyze.Accumulation
+	ctx           context.Context
+	messagec      chan func()
+	accumulations analyze.Accumulations
 }
 
 // NewCollector starts the collecting goroutine.
 func NewCollector(ctx context.Context) *Collector {
 	c := &Collector{
-		ctx:         ctx,
-		messagec:    make(chan func()),
-		accumulates: make(map[string]analyze.Accumulation),
+		ctx:           ctx,
+		messagec:      make(chan func()),
+		accumulations: make(analyze.Accumulations),
 	}
 	go c.backend()
 	return c
@@ -43,13 +45,52 @@ func (c *Collector) HandleResult(result *Result) {
 			log.Printf("error in poll job %q: %v", result.Job.ID, result.Err)
 			return
 		}
-		acc, ok := c.accumulates[result.Job.ID]
+		acc, ok := c.accumulations[result.Job.ID]
 		if !ok {
 			acc = analyze.Accumulation{}
 		}
 		log.Printf("accumulating job %q ...", result.Job.ID)
-		c.accumulates[result.Job.ID] = result.Job.Accumulate(acc, result.Accumulation)
+		c.accumulations[result.Job.ID] = result.Job.Accumulate(acc, result.Accumulation)
 	}
+}
+
+// GetIndex returns all collected job IDs.
+func (c *Collector) GetIndex() []string {
+	var index []string
+	c.messagec <- func() {
+		for id := range c.accumulations {
+			index = append(index, id)
+		}
+	}
+	sort.Strings(index)
+	return index
+}
+
+// GetAccumulation returns one accumulation by ID.
+func (c *Collector) GetAccumulation(id string) (analyze.Accumulation, error) {
+	var accumulation analyze.Accumulation
+	var err error
+	c.messagec <- func() {
+		found := c.accumulations[id]
+		if found == nil {
+			err = errors.New("not found")
+			return
+		}
+		accumulation := analyze.Accumulation{}
+		for key, value := range found {
+			accumulation[key] = value.Copy()
+		}
+	}
+	return accumulation, err
+}
+
+// GetAccumulations returns all accumulations.
+func (c *Collector) GetAccumulations() analyze.Accumulations {
+	var accumulations analyze.Accumulations
+	c.messagec <- func() {
+		accumulations = c.accumulations.Copy()
+	}
+	return accumulations
 }
 
 // backend receives the individual results of the pollers

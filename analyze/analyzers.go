@@ -11,16 +11,16 @@ type EventsAnalyzer func(es github.Events, acc Accumulation) (Accumulation, erro
 
 // Counter simply counts the number of events.
 func Counter(es github.Events, acc Accumulation) (Accumulation, error) {
-	acc["total"] = len(es)
+	acc["total"] = IntValue(len(es))
 	return acc, nil
 }
 
 // TypeCounter counts the different event types in the passed events.
 func TypeCounter(es github.Events, acc Accumulation) (Accumulation, error) {
 	for _, e := range es {
-		var c int
+		var c IntValue
 		t := "type(" + e.Type + ")"
-		c, _ = acc[t].(int)
+		c, _ = acc[t].(IntValue)
 		c++
 		acc[t] = c
 	}
@@ -35,9 +35,9 @@ func CreateActorFilter(login string) EventsAnalyzer {
 			if e.Actor.Login != login {
 				continue
 			}
-			var c int
+			var c IntValue
 			al := "actor(" + e.Actor.Login + ")"
-			c, _ = acc[al].(int)
+			c, _ = acc[al].(IntValue)
 			c++
 			acc[al] = c
 		}
