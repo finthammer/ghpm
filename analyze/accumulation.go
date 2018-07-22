@@ -67,5 +67,5 @@ func (accs Accumulations) Copy() Accumulations {
 		}
 		newAccs[id] = newAcc
 	}
-	return newAcces
+	return newAccs
 }

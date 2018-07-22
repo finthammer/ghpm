@@ -2,6 +2,8 @@ package analyze
 
 // Value defines methods an accumulated value has to provide.
 type Value interface {
+	// Copy helps that output can use values while they
+	// are changed by the analyzer.
 	Copy() Value
 }
 
