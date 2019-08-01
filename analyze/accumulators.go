@@ -5,6 +5,10 @@ import (
 	"log"
 )
 
+// Accumulator combines old and new accumulated results.
+type Accumulator func(accOld, accNew Accumulation) Accumulation
+
+// AccumulateKeys adds the individual keys.
 func AccumulateKeys(accOld, accNew Accumulation) Accumulation {
 	if accNew.IsEmpty() {
 		return accOld

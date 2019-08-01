@@ -17,7 +17,7 @@ type Job struct {
 	GitHubOptions   []github.Option
 	Interval        time.Duration
 	EventsAnalyzers []analyze.EventsAnalyzer
-	Accumulate      Accumulator
+	Accumulate      analyze.Accumulator
 }
 
 // Jobs contains a number of jobs.

@@ -2,15 +2,10 @@ package engine
 
 import (
 	"context"
-	"errors"
 	"log"
-	"sort"
 
 	"github.com/themue/ghpm/analyze"
 )
-
-// Accumulator combines old and new accumulated results.
-type Accumulator func(accOld, accNew analyze.Accumulation) analyze.Accumulation
 
 // Result contains the result of a job.
 type Result struct {
@@ -24,6 +19,7 @@ type Result struct {
 type Collector struct {
 	ctx           context.Context
 	messagec      chan func()
+	jobs          map[string]*Job
 	accumulations analyze.Accumulations
 }
 
@@ -32,6 +28,7 @@ func NewCollector(ctx context.Context) *Collector {
 	c := &Collector{
 		ctx:           ctx,
 		messagec:      make(chan func()),
+		jobs:          make(map[string]*Job),
 		accumulations: make(analyze.Accumulations),
 	}
 	go c.backend()
@@ -45,52 +42,66 @@ func (c *Collector) HandleResult(result *Result) {
 			log.Printf("error in poll job %q: %v", result.Job.ID, result.Err)
 			return
 		}
-		acc, ok := c.accumulations[result.Job.ID]
+		job, ok := c.jobs[result.Job.ID]
+		if !ok {
+			c.jobs[result.Job.ID] = result.Job
+			job = result.Job
+		}
+		acc, ok := c.accumulations[job.ID]
 		if !ok {
 			acc = analyze.Accumulation{}
 		}
-		log.Printf("accumulating job %q ...", result.Job.ID)
-		c.accumulations[result.Job.ID] = result.Job.Accumulate(acc, result.Accumulation)
+		log.Printf("accumulating job %q ...", job.ID)
+		c.accumulations[job.ID] = job.Accumulate(acc, result.Accumulation)
 	}
 }
 
-// GetIndex returns all collected job IDs.
-func (c *Collector) GetIndex() []string {
-	var index []string
+// GetJobs returns a list of all job IDs.
+func (c *Collector) GetJobs() []string {
+	var ids []string
 	c.messagec <- func() {
-		for id := range c.accumulations {
-			index = append(index, id)
+		for id := range c.jobs {
+			ids = append(ids, id)
 		}
 	}
-	sort.Strings(index)
-	return index
+	return ids
 }
 
-// GetAccumulation returns one accumulation by ID.
-func (c *Collector) GetAccumulation(id string) (analyze.Accumulation, error) {
-	var accumulation analyze.Accumulation
-	var err error
+// GetJob returns one job by id.
+func (c *Collector) GetJob(id string) *Job {
+	var job *Job
 	c.messagec <- func() {
-		found := c.accumulations[id]
-		if found == nil {
-			err = errors.New("not found")
+		job = c.jobs[id]
+	}
+	return job
+}
+
+// GetAccumulations returns a list of accumulation IDs of one job.
+func (c *Collector) GetAccumulations(jobID string) []string {
+	var ids []string
+	c.messagec <- func() {
+		acc, ok := c.accumulations[jobID]
+		if !ok {
 			return
 		}
-		accumulation := analyze.Accumulation{}
-		for key, value := range found {
-			accumulation[key] = value.Copy()
+		for id := range acc {
+			ids = append(ids, id)
 		}
 	}
-	return accumulation, err
+	return ids
 }
 
-// GetAccumulations returns all accumulations.
-func (c *Collector) GetAccumulations() analyze.Accumulations {
-	var accumulations analyze.Accumulations
+// GetAccumulation returns one accumulated value of one job.
+func (c *Collector) GetAccumulation(jobID, id string) analyze.Value {
+	var value analyze.Value
 	c.messagec <- func() {
-		accumulations = c.accumulations.Copy()
+		acc, ok := c.accumulations[jobID]
+		if !ok {
+			return
+		}
+		value = acc[id]
 	}
-	return accumulations
+	return value
 }
 
 // backend receives the individual results of the pollers
