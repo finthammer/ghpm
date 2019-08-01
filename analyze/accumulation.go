@@ -12,6 +12,11 @@ func (acc Accumulation) Keys() []string {
 	return keys
 }
 
+// Value returns the value for the given key.
+func (acc Accumulation) Value(key string) Value {
+	return acc[key]
+}
+
 // Add adds the key value of addend to the same of the accumulator
 // if both are ints, uints, or float64.
 func (acc Accumulation) Add(key string, addend Accumulation) bool {

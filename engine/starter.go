@@ -30,9 +30,9 @@ func ReadJobs() Jobs {
 				return accOld
 			},
 		}, {
-			ID:            "tideland-goaudit",
+			ID:            "tideland-go",
 			Owner:         "tideland",
-			Repo:          "goaudit",
+			Repo:          "go",
 			GitHubOptions: []github.Option{},
 			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
@@ -48,13 +48,29 @@ func ReadJobs() Jobs {
 				return accOld
 			},
 		}, {
-			ID:            "tideland-gocells",
-			Owner:         "tideland",
-			Repo:          "gocells",
+			ID:            "kubernetes",
+			Owner:         "kubernetes",
+			Repo:          "kubernetes",
 			GitHubOptions: []github.Option{},
 			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
-				analyze.CreateActorFilter("themue"),
+				analyze.TypeCounter,
+			},
+			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
+				log.Printf("adding %v ...", accNew.Keys())
+				if !accOld.AddAll(accNew) {
+					log.Printf("cannot accumulate correctly")
+					return analyze.Accumulation{}
+				}
+				return accOld
+			},
+		}, {
+			ID:            "kubeone",
+			Owner:         "kubermatic",
+			Repo:          "kubeone",
+			GitHubOptions: []github.Option{},
+			Interval:      10 * time.Second,
+			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 			},
 			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
