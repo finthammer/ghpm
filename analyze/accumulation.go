@@ -17,6 +17,11 @@ func (acc Accumulation) Value(key string) Value {
 	return acc[key]
 }
 
+// IsEmpty returns true if the accumulator contains no values.
+func (acc Accumulation) IsEmpty() bool {
+	return len(acc) == 0
+}
+
 // Add adds the key value of addend to the same of the accumulator
 // if both are ints, uints, or float64.
 func (acc Accumulation) Add(key string, addend Accumulation) bool {

@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/themue/ghpm/analyze"
@@ -21,14 +20,7 @@ func ReadJobs() Jobs {
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 			},
-			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
-				log.Printf("adding %v ...", accNew.Keys())
-				if !accOld.AddAll(accNew) {
-					log.Printf("cannot accumulate correctly")
-					return analyze.Accumulation{}
-				}
-				return accOld
-			},
+			Accumulate: analyze.AccumulateKeys,
 		}, {
 			ID:            "tideland-go",
 			Owner:         "tideland",
@@ -39,14 +31,7 @@ func ReadJobs() Jobs {
 				analyze.CreateActorFilter("themue"),
 				analyze.TypeCounter,
 			},
-			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
-				log.Printf("adding %v ...", accNew.Keys())
-				if !accOld.AddAll(accNew) {
-					log.Printf("cannot accumulate correctly")
-					return analyze.Accumulation{}
-				}
-				return accOld
-			},
+			Accumulate: analyze.AccumulateKeys,
 		}, {
 			ID:            "kubernetes",
 			Owner:         "kubernetes",
@@ -56,14 +41,7 @@ func ReadJobs() Jobs {
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 			},
-			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
-				log.Printf("adding %v ...", accNew.Keys())
-				if !accOld.AddAll(accNew) {
-					log.Printf("cannot accumulate correctly")
-					return analyze.Accumulation{}
-				}
-				return accOld
-			},
+			Accumulate: analyze.AccumulateKeys,
 		}, {
 			ID:            "kubeone",
 			Owner:         "kubermatic",
@@ -72,15 +50,9 @@ func ReadJobs() Jobs {
 			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
+				analyze.ActorCounter,
 			},
-			Accumulate: func(accOld, accNew analyze.Accumulation) analyze.Accumulation {
-				log.Printf("adding %v ...", accNew.Keys())
-				if !accOld.AddAll(accNew) {
-					log.Printf("cannot accumulate correctly")
-					return analyze.Accumulation{}
-				}
-				return accOld
-			},
+			Accumulate: analyze.AccumulateKeys,
 		},
 	}
 	return jobs

@@ -27,6 +27,18 @@ func TypeCounter(es github.Events, acc Accumulation) (Accumulation, error) {
 	return acc, nil
 }
 
+// ActorCounter counts the different actors.
+func ActorCounter(es github.Events, acc Accumulation) (Accumulation, error) {
+	for _, e := range es {
+		var c IntValue
+		al := "actor(" + e.Actor.Login + ")"
+		c, _ = acc[al].(IntValue)
+		c++
+		acc[al] = c
+	}
+	return acc, nil
+}
+
 // CreateActorFilter creates an events analyzer for actors based
 // on a passed login.
 func CreateActorFilter(login string) EventsAnalyzer {
