@@ -75,6 +75,7 @@ func (e *RepoEventor) Get() (Events, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", "ghpm")
 	if e.eTag != "" {
 		req.Header.Set("If-None-Match", e.eTag)
 

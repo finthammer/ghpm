@@ -9,6 +9,11 @@ import (
 // inside the passed aggregate too.
 type EventsAnalyzer func(es github.Events, acc Accumulation) (Accumulation, error)
 
+// MarshalJSON implements json.Marshaler.
+func (ea EventsAnalyzer) MarshalJSON() ([]byte, error) {
+	return []byte("\"EventsAnalyzer\""), nil
+}
+
 // Counter simply counts the number of events.
 func Counter(es github.Events, acc Accumulation) (Accumulation, error) {
 	acc["total"] = IntValue(len(es))
