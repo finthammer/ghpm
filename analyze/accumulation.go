@@ -34,6 +34,22 @@ func (acc Accumulation) Add(key string, addend Accumulation) bool {
 			acc[key] = i + a
 			return true
 		}
+	case StringValue:
+		if _, ok := acc[key]; !ok {
+			acc[key] = a
+			return true
+		} else if i, ok := acc[key].(StringValue); ok {
+			acc[key] = i + a
+			return true
+		}
+	case StringsValue:
+		if _, ok := acc[key]; !ok {
+			acc[key] = a
+			return true
+		} else if i, ok := acc[key].(StringsValue); ok {
+			acc[key] = append(i, a...)
+			return true
+		}
 	case UIntValue:
 		if _, ok := acc[key]; !ok {
 			acc[key] = a

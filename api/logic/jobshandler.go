@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -33,27 +32,13 @@ func (jh *JobsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "job not found", http.StatusNotFound)
 			return
 		}
-		b, err := json.Marshal(job)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(b)
+		infra.ReplyJSON(w, job)
 		return
 	}
 	// Requesting list of job IDs.
 	jobIDs := jh.collector.GetJobIDs()
 	log.Printf("requested %d job IDs", len(jobIDs))
-	b, err := json.Marshal(jobIDs)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+	infra.ReplyJSON(w, jobIDs)
 }
 
 // ServeHTTP implements http.Handler.

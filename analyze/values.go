@@ -15,6 +15,22 @@ func (v IntValue) Copy() Value {
 	return v
 }
 
+// StringValue implements Value for single strings.
+type StringValue string
+
+// Copy implements Value.
+func (v StringValue) Copy() Value {
+	return v
+}
+
+// StringsValue implements Value for a number of strings.
+type StringsValue []string
+
+// Copy implements Value.
+func (v StringsValue) Copy() Value {
+	return v
+}
+
 // UIntValue implements Value for unsigned integers.
 type UIntValue uint
 

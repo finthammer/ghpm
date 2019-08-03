@@ -11,7 +11,7 @@ import (
 
 func main() {
 	log.Printf("GitHub Process Monitor started ...")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 	collector := engine.NewCollector(ctx)
 	api.SpawnAPI(ctx, collector)

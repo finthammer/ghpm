@@ -5,20 +5,6 @@ import (
 	"strings"
 )
 
-// PathAt returns the nth part of the given request path and true if
-// it exists. Otherwise an empty string and false. This way users of
-// the nested handlers can retrieve an entity ID out of the path.
-func PathAt(p string, n int) (string, bool) {
-	if n < 0 {
-		panic("illegal path index")
-	}
-	parts := strings.Split(p[1:], "/")
-	if len(parts) < n+1 || parts[n] == "" {
-		return "", false
-	}
-	return parts[n], true
-}
-
 // NestedHandler allows to nest handler following the
 // pattern /handlerA/{entityID-A}/handlerB/{entityID-B}.
 type NestedHandler struct {

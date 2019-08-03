@@ -1,6 +1,8 @@
 package analyze
 
 import (
+	"fmt"
+
 	"github.com/themue/ghpm/github"
 )
 
@@ -16,7 +18,7 @@ func (ea EventsAnalyzer) MarshalJSON() ([]byte, error) {
 
 // Counter simply counts the number of events.
 func Counter(es github.Events, acc Accumulation) (Accumulation, error) {
-	acc["total"] = IntValue(len(es))
+	acc["totalCounter"] = IntValue(len(es))
 	return acc, nil
 }
 
@@ -24,10 +26,24 @@ func Counter(es github.Events, acc Accumulation) (Accumulation, error) {
 func TypeCounter(es github.Events, acc Accumulation) (Accumulation, error) {
 	for _, e := range es {
 		var c IntValue
-		t := "type(" + e.Type + ")"
-		c, _ = acc[t].(IntValue)
+		tc := "typeCounter(" + e.Type + ")"
+		c, _ = acc[tc].(IntValue)
 		c++
-		acc[t] = c
+		acc[tc] = c
+	}
+	return acc, nil
+}
+
+// PayloadsCollector collects the payloads per actor.
+func PayloadsCollector(es github.Events, acc Accumulation) (Accumulation, error) {
+	for _, e := range es {
+		for key, payload := range e.Payload {
+			var pc StringsValue
+			ap := "actorPayload(" + key + "@" + e.Actor.Login + ")"
+			pc, _ = acc[ap].(StringsValue)
+			pc = append(pc, fmt.Sprintf("%q", payload))
+			acc[ap] = pc
+		}
 	}
 	return acc, nil
 }
@@ -36,10 +52,10 @@ func TypeCounter(es github.Events, acc Accumulation) (Accumulation, error) {
 func ActorCounter(es github.Events, acc Accumulation) (Accumulation, error) {
 	for _, e := range es {
 		var c IntValue
-		al := "actor(" + e.Actor.Login + ")"
-		c, _ = acc[al].(IntValue)
+		ac := "actorCounter(" + e.Actor.Login + ")"
+		c, _ = acc[ac].(IntValue)
 		c++
-		acc[al] = c
+		acc[ac] = c
 	}
 	return acc, nil
 }
@@ -53,10 +69,10 @@ func CreateActorFilter(login string) EventsAnalyzer {
 				continue
 			}
 			var c IntValue
-			al := "actor(" + e.Actor.Login + ")"
-			c, _ = acc[al].(IntValue)
+			af := "actorFilter(" + e.Actor.Login + ")"
+			c, _ = acc[af].(IntValue)
 			c++
-			acc[al] = c
+			acc[af] = c
 		}
 		return acc, nil
 	}

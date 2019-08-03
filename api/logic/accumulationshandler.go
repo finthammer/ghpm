@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -36,7 +35,7 @@ func (jh *AccumulationsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "accumulated value not found", http.StatusNotFound)
 			return
 		}
-		b, err := json.Marshal(struct {
+		infra.ReplyJSON(w, struct {
 			JobID          string
 			AccumulationID string
 			Value          analyze.Value
@@ -45,26 +44,12 @@ func (jh *AccumulationsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Requ
 			AccumulationID: accumulationID,
 			Value:          value,
 		})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(b)
 		return
 	}
 	// Requesting list of accumulation IDs.
 	accumulationIDs := jh.collector.GetAccumulationIDs(jobID)
 	log.Printf("requested accumulations of job %q", jobID)
-	b, err := json.Marshal(accumulationIDs)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+	infra.ReplyJSON(w, accumulationIDs)
 }
 
 // ServeHTTP implements http.Handler.

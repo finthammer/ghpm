@@ -40,6 +40,7 @@ func ReadJobs() Jobs {
 			Interval:      10 * time.Second,
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
+				analyze.PayloadsCollector,
 			},
 			Accumulate: analyze.AccumulateKeys,
 		}, {
@@ -51,6 +52,7 @@ func ReadJobs() Jobs {
 			EventsAnalyzers: []analyze.EventsAnalyzer{
 				analyze.TypeCounter,
 				analyze.ActorCounter,
+				analyze.PayloadsCollector,
 			},
 			Accumulate: analyze.AccumulateKeys,
 		},
