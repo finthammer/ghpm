@@ -24,13 +24,13 @@ func NewAccumulationsHandler(collector *engine.Collector) http.Handler {
 }
 
 // ServeHTTPGet implements infra.GetHandler.
-func (jh *AccumulationsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Request) {
+func (ah *AccumulationsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Request) {
 	jobID, _ := infra.PathAt(r.URL.Path, 1)
 	accumulationID, ok := infra.PathAt(r.URL.Path, 3)
 	if ok {
 		// Got an accumulation value for a job.
 		log.Printf("requested accumulation %q for job %q", accumulationID, jobID)
-		value := jh.collector.GetAccumulation(jobID, accumulationID)
+		value := ah.collector.GetAccumulation(jobID, accumulationID)
 		if value == nil {
 			http.Error(w, "accumulated value not found", http.StatusNotFound)
 			return
@@ -47,12 +47,12 @@ func (jh *AccumulationsHandler) ServeHTTPGet(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	// Requesting list of accumulation IDs.
-	accumulationIDs := jh.collector.GetAccumulationIDs(jobID)
+	accumulationIDs := ah.collector.GetAccumulationIDs(jobID)
 	log.Printf("requested accumulations of job %q", jobID)
 	infra.ReplyJSON(w, accumulationIDs)
 }
 
 // ServeHTTP implements http.Handler.
-func (jh *AccumulationsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (ah *AccumulationsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "cannot handle request", http.StatusMethodNotAllowed)
 }
